@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ebrar için küçük bir oyun</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600&family=Pacifico&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #ffe5f0, #f5e6ff);
+      --primary: #ff8fb7;
+      --primary-dark: #ff6a9c;
+      --accent: #b19eff;
+      --accent-soft: rgba(177, 158, 255, 0.25);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --text-main: #50325b;
+      --text-soft: #7b5b88;
+      --shadow-soft: 0 12px 25px rgba(0, 0, 0, 0.08);
+      --radius-xl: 24px;
+      --transition-fast: 0.25s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Baloo 2", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Floating hearts background */
+    body::before,
+    body::after {
+      content: "❤";
+      position: fixed;
+      font-size: 40px;
+      opacity: 0.15;
+      animation: floatUp 12s infinite linear;
+      pointer-events: none;
+    }
+
+    body::before {
+      left: 10%;
+      bottom: -10%;
+    }
+
+    body::after {
+      right: 15%;
+      bottom: -15%;
+      animation-delay: 3s;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-120vh) scale(1.3); }
+    }
+
+    .game-container {
+      width: 100%;
+      max-width: 480px;
+      margin: 16px;
+      background: var(--card-bg);
+      border-radius: 32px;
+      padding: 24px 20px 28px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+      pointer-events: none;
+      animation: sparklePop 0.8s ease-out forwards;
+      z-index: 20;
+    }
+
+    @keyframes sparklePop {
+      0% { transform: scale(0.3); opacity: 1; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    header .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 0.85rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--accent);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .screen-title {
+      font-size: 1.4rem;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .screen-subtitle {
+      text-align: center;
+      font-size: 0.95rem;
+      color: var(--text-soft);
+      margin-bottom: 12px;
+    }
+
+    /* Screens */
+    .screen {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 8px;
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(16px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .primary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 22px;
+      border-radius: 999px;
+      border: none;
+      outline: none;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(255, 143, 183, 0.35);
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        filter var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+      gap: 6px;
+    }
+
+    .primary-btn span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .primary-btn::before {
+      content: "";
+      position: absolute;
+      width: 120%;
+      height: 210%;
+      background: radial-gradient(circle at 0 0, #fff, transparent 55%);
+      opacity: 0;
+      transform: translate(-60%, -60%);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .primary-btn:hover::before {
+      opacity: 0.4;
+      transform: translate(-30%, -80%);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 14px 26px rgba(255, 143, 183, 0.45);
+      filter: brightness(1.05);
+    }
+
+    .primary-btn:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 8px 16px rgba(255, 143, 183, 0.35);
+    }
+
+    .primary-btn.blink {
+      animation: blinkButton 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blinkButton {
+      0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+      50% { transform: translateY(-1px) scale(1.03); opacity: 0.85; }
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .option-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 12px 16px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-main);
+      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .option-btn span.icon {
+      font-size: 1.25rem;
+    }
+
+    .option-btn:hover {
+      background: #ffe9f3;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .bubble-box {
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: #fff6ff;
+      border: 1px solid var(--accent-soft);
+      font-size: 0.9rem;
+      color: var(--text-soft);
+      position: relative;
+      margin-top: 6px;
+    }
+
+    .bubble-box::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      top: -8px;
+      border-width: 0 10px 10px 10px;
+      border-style: solid;
+      border-color: transparent transparent #fff6ff transparent;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .centered {
+      text-align: center;
+    }
+
+    /* Game 2: falling hearts */
+    .heart-game {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: var(--radius-xl);
+      padding: 12px 10px 16px;
+      position: relative;
+      overflow: hidden;
+      border: 1px dashed rgba(255, 143, 183, 0.5);
+    }
+
+    .heart-instruction {
+      font-size: 0.9rem;
+      color: var(--text-soft);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #ffe5f0;
+      overflow: hidden;
+      margin-bottom: 8px;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: inherit;
+      transition: width 0.25s ease-out;
+    }
+
+    .heart-field {
+      position: relative;
+      width: 100%;
+      height: 180px;
+    }
+
+    .falling-heart {
+      position: absolute;
+      font-size: 22px;
+      cursor: pointer;
+      animation: heartFall 4s linear forwards;
+      user-select: none;
+    }
+
+    @keyframes heartFall {
+      0% { transform: translateY(-20px) scale(0.8); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateY(190px) scale(1); opacity: 0; }
+    }
+
+    .falling-heart.popped {
+      animation: heartPop 0.35s ease-out forwards;
+    }
+
+    @keyframes heartPop {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.7); opacity: 0; }
+    }
+
+    #heartStatus {
+      font-size: 0.95rem;
+      text-align: center;
+      color: var(--text-soft);
+      min-height: 20px;
+    }
+
+    /* Game 3: flip cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .flip-card {
+      perspective: 900px;
+      cursor: pointer;
+    }
+
+    .flip-inner {
+      position: relative;
+      width: 100%;
+      padding-top: 140%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .flip-card.flipped .flip-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      text-align: center;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+    }
+
+    .flip-front {
+      background: #ffe0f2;
+      color: var(--accent);
+      font-size: 1.6rem;
+    }
+
+    .flip-back {
+      background: #ffffff;
+      color: var(--text-main);
+      transform: rotateY(180deg);
+      font-size: 0.8rem;
+    }
+
+    #cardsHint {
+      font-size: 0.9rem;
+      color: var(--text-soft);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* Final Screen */
+    .handwriting {
+      font-family: "Pacifico", cursive;
+      font-size: 1.5rem;
+      text-align: center;
+      color: var(--primary-dark);
+      line-height: 1.3;
+    }
+
+    .final-text {
+      font-size: 0.95rem;
+      text-align: center;
+      color: var(--text-soft);
+      margin-top: 6px;
+    }
+
+    .peace-btn {
+      margin: 14px auto 0;
+      display: flex;
+      min-width: 170px;
+    }
+
+    .peace-btn:hover {
+      animation: wiggle 0.6s ease-in-out infinite;
+    }
+
+    @keyframes wiggle {
+      0% { transform: translateY(-1px) rotate(-1.5deg) scale(1.02); }
+      50% { transform: translateY(0px) rotate(1.5deg) scale(1.04); }
+      100% { transform: translateY(-1px) rotate(-1deg) scale(1.02); }
+    }
+
+    .final-note {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      margin-top: 10px;
+    }
+
+    /* Small screens */
+    @media (max-width: 480px) {
+      .game-container {
+        padding: 20px 16px 22px;
+        border-radius: 26px;
+      }
+      .screen-title {
+        font-size: 1.25rem;
+      }
+      .handwriting {
+        font-size: 1.35rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container" id="gameContainer">
+    <header>
+      <div class="tag">✨ Ebrar için küçük bir oyun ✨</div>
+    </header>
+
+    <!-- Screen 1: Welcome -->
+    <section class="screen active" id="screen-welcome">
+      <h1 class="screen-title">Ebrar için küçük bir oyun hazırlandı…</h1>
+      <p class="screen-subtitle">
+        Bugün sadece minik bir gülümseme görevi var. Hazır mısın? 😌
+      </p>
+
+      <div class="centered" style="margin-top: 12px;">
+        <button class="primary-btn blink" id="startBtn">
+          <span>Başla</span> <span>💫</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 2: Mini-game 1 -->
+    <section class="screen" id="screen-game1">
+      <h2 class="screen-title">Mini Ruh Hali Testi</h2>
+      <p class="screen-subtitle">
+        Bakalım bugün Ebrar modu hangisi? 🧃
+      </p>
+
+      <div class="btn-row">
+        <button class="option-btn" id="btn-kirgini">
+          <span>Bugün cool ve ciddi moddayım 🙈</span>
+          <span class="icon">😎</span>
+        </button>
+        <button class="option-btn" id="btn-merak">
+          <span>Keyfim yerinde, sadece oyunu merak ettim 😌</span>
+          <span class="icon">🌈</span>
+        </button>
+      </div>
+
+      <div class="bubble-box hidden" id="game1Result">
+        <span id="game1Text"></span>
+      </div>
+
+      <div class="centered hidden" id="game1NextWrapper">
+        <button class="primary-btn" id="toGame2Btn">
+          <span>Devam edelim 💫</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 3: Mini-game 2 -->
+    <section class="screen" id="screen-game2">
+      <h2 class="screen-title">Kalp Parlatma Görevi</h2>
+      <p class="screen-subtitle">
+        Aşağıya minik kalpler düşecek. Görev: kalbi parlatmak ve mutluluk seviyesini yükseltmek. 💟
+      </p>
+
+      <div class="heart-game">
+        <p class="heart-instruction">
+          Düşen minik kalplere tıkla ve ilerleme çubuğunu doldur. 🎯
+        </p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="heartProgress"></div>
+        </div>
+        <div class="heart-field" id="heartField"></div>
+      </div>
+
+      <p id="heartStatus"></p>
+
+      <div class="centered hidden" id="game2NextWrapper">
+        <button class="primary-btn" id="toGame3Btn">
+          <span>Devam et ✨</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 4: Mini-game 3 -->
+    <section class="screen" id="screen-game3">
+      <h2 class="screen-title">Gerçekleri Açığa Çıkar</h2>
+      <p class="screen-subtitle">
+        Üç tane kart var. Her kartın altında Ebrar’la ilgili minik bir “gerçek” saklı. 💌
+      </p>
+
+      <div class="card-grid">
+        <div class="flip-card" data-index="1">
+          <div class="flip-inner">
+            <div class="flip-face flip-front">❓</div>
+            <div class="flip-face flip-back">
+              Seninle konuşmak günün en tatlı kısmı.
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-card" data-index="2">
+          <div class="flip-inner">
+            <div class="flip-face flip-front">❓</div>
+            <div class="flip-face flip-back">
+              Gülüşün tek başına bütün modu değiştirebiliyor.
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-card" data-index="3">
+          <div class="flip-inner">
+            <div class="flip-face flip-front">❓</div>
+            <div class="flip-face flip-back">
+              Birlikte böyle küçük oyunlar oynamaya devam edelim mi? 🥺
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p id="cardsHint">
+        Kartlara tek tek dokun, neler çıkacak görelim… 🌸
+      </p>
+
+      <div class="centered hidden" id="game3NextWrapper">
+        <button class="primary-btn" id="toFinalBtn">
+          <span>Son ekrana geç 💕</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 5: Final -->
+    <section class="screen" id="screen-final">
+      <h2 class="handwriting">Ebrar, benim için çok değerlisin.</h2>
+      <p class="final-text">
+        Eğer yüzünü azıcık bile güldürebildiysem… bu mini oyun görevini başarıyla bitirdin. 🌷
+      </p>
+
+      <button class="primary-btn peace-btn" id="peaceBtn">
+        <span>Barışalım mı?</span> <span>🤍</span>
+      </button>
+
+      <p class="final-note" id="finalNote"></p>
+    </section>
+  </div>
+
+  <script>
+    // ---------- Basic screen logic ----------
+    const screens = {
+      welcome: document.getElementById("screen-welcome"),
+      game1: document.getElementById("screen-game1"),
+      game2: document.getElementById("screen-game2"),
+      game3: document.getElementById("screen-game3"),
+      final: document.getElementById("screen-final"),
+    };
+
+    function showScreen(key) {
+      Object.values(screens).forEach((s) => s.classList.remove("active"));
+      screens[key].classList.add("active");
+    }
+
+    // ---------- Audio: soft click & sparkle sounds ----------
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          audioCtx = new AudioContext();
+        }
+      }
+    }
+
+    function playTone(freq, duration, type = "sine") {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      osc.start(now);
+      osc.stop(now + duration + 0.03);
+    }
+
+    function playClickSound() {
+      initAudio();
+      playTone(600, 0.09, "triangle");
+    }
+
+    function playSparkleSound() {
+      initAudio();
+      playTone(930, 0.12, "sine");
+      setTimeout(() => playTone(1240, 0.12, "sine"), 90);
+    }
+
+    // Tiny sparkle visual on click
+    const gameContainer = document.getElementById("gameContainer");
+    function spawnSparkle(x, y) {
+      const rect = gameContainer.getBoundingClientRect();
+      const spark = document.createElement("div");
+      spark.className = "sparkle";
+      spark.style.left = x - rect.left + "px";
+      spark.style.top = y - rect.top + "px";
+      gameContainer.appendChild(spark);
+      setTimeout(() => spark.remove(), 800);
+    }
+
+    // ---------- Screen 1: Welcome ----------
+    const startBtn = document.getElementById("startBtn");
+    startBtn.addEventListener("click", (e) => {
+      playClickSound();
+      spawnSparkle(e.clientX, e.clientY);
+      showScreen("game1");
+    });
+
+    // ---------- Screen 2: Game 1 ----------
+    const btnKirgini = document.getElementById("btn-kirgini");
+    const btnMerak = document.getElementById("btn-merak");
+    const game1Result = document.getElementById("game1Result");
+    const game1Text = document.getElementById("game1Text");
+    const game1NextWrapper = document.getElementById("game1NextWrapper");
+    const toGame2Btn = document.getElementById("toGame2Btn");
+
+    btnKirgini.addEventListener("click", (e) => {
+      playClickSound();
+      spawnSparkle(e.clientX, e.clientY);
+      game1Text.textContent =
+        "Tam Ebrar’a yakışan mod: hafif ciddi ama içten içe eğlenceye hazır. Bu oyun da tam onun için zaten. 💗";
+      game1Result.classList.remove("hidden");
+      game1NextWrapper.classList.remove("hidden");
+    });
+
+    btnMerak.addEventListener("click", (e) => {
+      playClickSound();
+      spawnSparkle(e.clientX, e.clientY);
+      game1Text.textContent =
+        "Merak modu açık olduğuna göre, bu oyunun geri kalanı da senden tam puan alır umarım. 🫧";
+      game1Result.classList.remove("hidden");
+      game1NextWrapper.classList.remove("hidden");
+    });
+
+    toGame2Btn.addEventListener("click", (e) => {
+      playSparkleSound();
+      spawnSparkle(e.clientX, e.clientY);
+      showScreen("game2");
+    });
+
+    // ---------- Screen 3: Game 2 (falling hearts) ----------
+    const heartField = document.getElementById("heartField");
+    const heartProgress = document.getElementById("heartProgress");
+    const heartStatus = document.getElementById("heartStatus");
+    const game2NextWrapper = document.getElementById("game2NextWrapper");
+    const toGame3Btn = document.getElementById("toGame3Btn");
+
+    let heartInterval = null;
+    let collectedHearts = 0;
+    const targetHearts = 10;
+    let heartGameFinished = false;
+
+    function startHeartRain() {
+      collectedHearts = 0;
+      heartGameFinished = false;
+      heartProgress.style.width = "0%";
+      heartStatus.textContent = "Hazırsan başlıyoruz… İlk kalp birazdan düşer. 💞";
+
+      if (heartInterval) clearInterval(heartInterval);
+
+      heartInterval = setInterval(() => {
+        if (heartGameFinished) return;
+        createFallingHeart();
+      }, 800);
+    }
+
+    function createFallingHeart() {
+      const heart = document.createElement("div");
+      heart.className = "falling-heart";
+      heart.textContent = "💖";
+      const fieldRect = heartField.getBoundingClientRect();
+      const x = Math.random() * (fieldRect.width - 30);
+      heart.style.left = x + "px";
+      heartField.appendChild(heart);
+
+      heart.addEventListener("click", (e) => {
+        if (heart.classList.contains("popped")) return;
+        playClickSound();
+        playSparkleSound();
+        heart.classList.add("popped");
+        collectedHearts++;
+        const progress = Math.min(
+          100,
+          Math.round((collectedHearts / targetHearts) * 100)
+        );
+        heartProgress.style.width = progress + "%";
+
+        if (collectedHearts >= targetHearts && !heartGameFinished) {
+          finishHeartGame(e.clientX, e.clientY);
+        }
+      });
+
+      heart.addEventListener("animationend", () => {
+        heart.remove();
+      });
+    }
+
+    function finishHeartGame(x, y) {
+      heartGameFinished = true;
+      if (heartInterval) clearInterval(heartInterval);
+      playSparkleSound();
+      spawnSparkle(x, y);
+      heartStatus.textContent = "Kalp parlatma görevinde resmen usta seviyesine çıktın! 😉";
+      game2NextWrapper.classList.remove("hidden");
+    }
+
+    const observer = new MutationObserver(() => {
+      if (screens.game2.classList.contains("active")) {
+        heartField.innerHTML = "";
+        startHeartRain();
+      } else {
+        if (heartInterval) clearInterval(heartInterval);
+      }
+    });
+    observer.observe(screens.game2, { attributes: true, attributeFilter: ["class"] });
+
+    toGame3Btn.addEventListener("click", (e) => {
+      playClickSound();
+      spawnSparkle(e.clientX, e.clientY);
+      showScreen("game3");
+    });
+
+    // ---------- Screen 4: Game 3 (flip cards) ----------
+    const flipCards = document.querySelectorAll(".flip-card");
+    const cardsHint = document.getElementById("cardsHint");
+    const game3NextWrapper = document.getElementById("game3NextWrapper");
+    const toFinalBtn = document.getElementById("toFinalBtn");
+    let flippedCount = 0;
+
+    flipCards.forEach((card) => {
+      card.addEventListener("click", (e) => {
+        if (card.classList.contains("flipped")) return;
+        playClickSound();
+        spawnSparkle(e.clientX, e.clientY);
+        card.classList.add("flipped");
+        flippedCount++;
+
+        if (flippedCount === 1) {
+          cardsHint.textContent = "Güzel başlangıç, devamı daha da tatlı. 🌈";
+        } else if (flippedCount === 2) {
+          cardsHint.textContent = "Son kart genelde en tatlısı olur. 💭";
+        } else if (flippedCount === 3) {
+          cardsHint.textContent =
+            "Hepsini açtın… İşte bu kartların hepsi, Ebrar modu için seçildi. 💌";
+          game3NextWrapper.classList.remove("hidden");
+          playSparkleSound();
+        }
+      });
+    });
+
+    toFinalBtn.addEventListener("click", (e) => {
+      playSparkleSound();
+      spawnSparkle(e.clientX, e.clientY);
+      showScreen("final");
+    });
+
+    // ---------- Screen 5: Final ----------
+    const peaceBtn = document.getElementById("peaceBtn");
+    const finalNote = document.getElementById("finalNote");
+
+    peaceBtn.addEventListener("click", (e) => {
+      playSparkleSound();
+      spawnSparkle(e.clientX, e.clientY);
+      finalNote.textContent =
+        "Cevabın ne olursa olsun, bu sayfa sadece senin için hazırlanmış mutlu bir köşe olarak burada dursun. 🌸";
+    });
+  </script>
+</body>
+</html>
